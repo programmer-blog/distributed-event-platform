@@ -18,6 +18,12 @@ export class UserService {
     private readonly userRepo: Repository<User>,
   ) {}
 
+  async findAll() {
+    const users = await this.userRepo.find();
+
+    return users.map(({ password, ...rest }) => rest);
+  }
+
   async createUser(dto: CreateUserDto) {
     const existing = await this.userRepo.findOne({
       where: { email: dto.email },
