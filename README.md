@@ -152,3 +152,7 @@ This project is designed to simulate a real-world backend service and will evolv
 ## What is a module in NestJS?
 
 A module defines a logical boundary of a feature or service, grouping controllers, services, and dependencies. In microservices architecture, each module can evolve into an independent service.
+
+##  Containerized NestJS service with PostgreSQL
+
+Containerized a NestJS service with PostgreSQL using Docker Compose and handled environment-based configuration between local and container environments.”
