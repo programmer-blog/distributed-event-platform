@@ -24,6 +24,18 @@ export class UserService {
     return users.map(({ password, ...rest }) => rest);
   }
 
+  async findOne(id: number) {
+    const user = await this.userRepo.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // remove password
+    const { password, ...rest } = user;
+    return rest;
+  }
+
   async createUser(dto: CreateUserDto) {
     const existing = await this.userRepo.findOne({
       where: { email: dto.email },
@@ -80,5 +92,17 @@ export class UserService {
         `Failed to update user: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
+  }
+
+  async remove(id: number) {
+    const user = await this.userRepo.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.userRepo.remove(user);
+
+    return { message: 'User deleted successfully' };
   }
 }
