@@ -8,11 +8,14 @@ import * as redisStore from 'cache-manager-redis-store';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    CacheModule.register({
-      store: redisStore,
-      host: process.env.REDIS_HOST,
-      port: process.env.REDIS_PORT,
-      ttl: 60, // seconds
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: () => ({
+        store: redisStore,
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
+        ttl: 60,
+      }),
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],

@@ -168,9 +168,69 @@ This ensures data consistency between cache and database.
 
 ---
 
+## 📩 Event-Driven Architecture (RabbitMQ)
+
+The service publishes domain events using RabbitMQ to enable asynchronous processing and loose coupling between components.
+
+---
+
+### 🧠 Why Event-Driven?
+
+Instead of handling all logic synchronously, the system emits events that other services or workers can consume independently.
+
+This improves:
+
+* Scalability
+* Decoupling
+* System reliability
+
+---
+
+### ⚙️ Implementation
+
+* RabbitMQ runs as a Docker service
+* Events are published using `amqplib`
+* Messaging layer implemented under `src/messaging`
+
+---
+
+### 📤 Event Example
+
+When a user is created:
+
+```json
+{
+  "userId": 1,
+  "email": "user@example.com"
+}
+```
+
+Event is published to queue:
+
+```id="queue_name"
+user_created
+```
+
+---
+
+### 🔄 Flow
+
+1. User is created via API
+2. Service publishes `user_created` event
+3. Other services (or future workers) can consume this event
+
+---
+
+### 🐳 RabbitMQ Access
+
+* Management UI: http://localhost:15672
+* Username: `guest`
+* Password: `guest`
+
+---
+
 ## 🔜 Next Steps
 
-* Introduce message queue (Kafka / RabbitMQ)
 * Implement background jobs
 * Add authentication (JWT)
 * Deploy to AWS

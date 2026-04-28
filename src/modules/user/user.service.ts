@@ -12,14 +12,19 @@ import * as bcrypt from 'bcryptjs';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
+import { RabbitMQService } from '../../messaging/rabbitmq.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
+
+    private readonly rabbitMQService: RabbitMQService,
   ) {}
 
   async findAll() {
@@ -68,15 +73,20 @@ export class UserService {
       ...dto,
       password: hashedPassword,
     });
+    const createdUser = await this.userRepo.save(user);
 
     try {
-      return await this.userRepo.save(user);
+      await this.rabbitMQService.publish('user_created', {
+        userId: createdUser.id,
+        email: createdUser.email,
+      });
     } catch (error: unknown) {
-      if (error instanceof Error && error.message.includes('23505')) {
-        throw new ConflictException('Email already exists');
-      }
-      throw new InternalServerErrorException('Failed to create user');
+      console.error('RABBITMQ ERROR', error);
+      throw new InternalServerErrorException(
+        error instanceof Error ? error.message : 'Unknown error',
+      );
     }
+    return createdUser;
   }
 
   async updateUser(id: number, dto: UpdateUserDto) {
@@ -107,8 +117,14 @@ export class UserService {
       await this.cacheManager.del('users_all');
       return updated;
     } catch (error: unknown) {
+      console.error('CREATE USER ERROR:', error);
+
+      if (error instanceof Error && error.message.includes('23505')) {
+        throw new ConflictException('Email already exists');
+      }
+
       throw new InternalServerErrorException(
-        `Failed to update user: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.message : 'Unknown error',
       );
     }
   }
