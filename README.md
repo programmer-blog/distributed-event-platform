@@ -275,6 +275,36 @@ Processing user: user@example.com
 ```
 ---
 
+## 🛡️ Reliability & Error Handling
+
+The system now includes failure handling mechanisms for message processing.
+
+---
+
+### 🔁 Retry Mechanism
+
+* Messages are retried up to 3 times
+* Retry count is tracked via message headers
+* Failed messages are requeued automatically
+
+---
+
+### ❌ Failure Handling
+
+If processing fails:
+
+* Message is retried
+* After max retries, message is dropped or moved to DLQ (future enhancement)
+
+---
+
+### 🧠 Concept
+
+This implements a basic **at-least-once delivery** strategy ensuring no message is lost during transient failures.
+
+ 
+----
+
 ## 🔜 Next Steps
 
 * Add authentication (JWT)

@@ -11,14 +11,28 @@ export class UserConsumer {
 
     await this.channel.assertQueue(queue);
 
-    this.channel.consume(queue, (msg) => {
-      if (msg) {
+    this.channel.consume(queue, async (msg) => {
+      const retryCount = msg.properties.headers?.retry || 0;
+
+      try {
         const data = JSON.parse(msg.content.toString());
 
-        console.log('User Created Event Received:', data);
+        await this.handleUserCreated(data);
 
-        // simulate background processing
-        this.handleUserCreated(data);
+        this.channel.ack(msg);
+      } catch (error) {
+        if (retryCount >= 3) {
+          console.log('Max retries reached, sending to DLQ');
+
+          this.channel.nack(msg, false, false); // drop message
+          return;
+        }
+
+        this.channel.sendToQueue(queue, msg.content, {
+          headers: {
+            retry: retryCount + 1,
+          },
+        });
 
         this.channel.ack(msg);
       }
