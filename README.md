@@ -1,6 +1,6 @@
 # Event-Driven User Service
 
-A production-style backend service built with NestJS, demonstrating clean architecture, PostgreSQL integration, and microservice-ready design.
+A production-style backend service built with NestJS, demonstrating clean architecture, PostgreSQL integration, and a fully Dockerized setup.
 
 ---
 
@@ -10,7 +10,7 @@ A production-style backend service built with NestJS, demonstrating clean archit
 * NestJS
 * PostgreSQL
 * TypeORM
-* Docker
+* Docker & Docker Compose
 
 ---
 
@@ -19,8 +19,8 @@ A production-style backend service built with NestJS, demonstrating clean archit
 * Modular architecture (User module as service boundary)
 * REST APIs for user management
 * DTO validation using class-validator
-* Database integration using TypeORM
-* Dockerized PostgreSQL setup
+* Database integration with TypeORM
+* Fully Dockerized application (App + Database)
 * Environment-based configuration
 
 ---
@@ -48,51 +48,57 @@ src/
 
 ---
 
-## ⚙️ Setup Instructions
+## ⚙️ Running the Application (Docker - Recommended)
 
-### 1. Clone the repository
-
-```
-git clone <repo-url>
-cd event-driven-user-service
-```
-
----
-
-### 2. Install dependencies
+### 1. Build and start services
 
 ```
-npm install
+docker-compose up --build
 ```
 
 ---
 
-### 3. Setup environment variables
-
-Create a `.env` file:
+### 2. Access the API
 
 ```
-DB_HOST=localhost
+http://localhost:3000
+```
+
+---
+
+### 3. Stop services
+
+```
+docker-compose down
+```
+
+---
+
+## 🐳 Services
+
+### App
+
+* Runs NestJS application
+* Exposed on port `3000`
+
+### PostgreSQL
+
+* Runs in container
+* Port `5432`
+* Persistent storage via Docker volume
+
+---
+
+## 🔐 Environment Configuration
+
+Environment variables are provided via `docker-compose.yml`:
+
+```
+DB_HOST=postgres
 DB_PORT=5432
 DB_USER=postgres
 DB_PASS=postgres
 DB_NAME=user_service
-```
-
----
-
-### 4. Start PostgreSQL using Docker
-
-```
-docker-compose up -d
-```
-
----
-
-### 5. Run the application
-
-```
-npm run start:dev
 ```
 
 ---
@@ -119,28 +125,55 @@ PATCH `/users/:id`
 
 ## 🧠 Key Concepts Implemented
 
-* Modular backend design (NestJS modules)
-* Separation of concerns (controller, service, DTO, entity)
-* Repository pattern using TypeORM
-* Validation and error handling
-* Environment-based configuration
-* Dockerized database setup
+* Modular backend design using NestJS
+* Separation of concerns (Controller / Service / DTO / Entity)
+* Repository pattern via TypeORM
+* Input validation and error handling
+* Containerized infrastructure using Docker
+* Multi-container orchestration with Docker Compose
 
 ---
 
-## 🐳 Docker
+## ⚡ Caching (Redis)
 
-PostgreSQL runs in a Docker container via `docker-compose.yml`.
+The application uses Redis as a caching layer to improve performance and reduce database load.
+
+### Strategy Used
+
+* Cache Aside Pattern
+* Frequently accessed data (e.g., user list) is cached
+* Cache is invalidated on data updates
+
+### Example
+
+* `GET /users` → cached for 60 seconds
+* Cache key: `users_all`
+
+### Flow
+
+1. Check Redis cache
+2. If data exists → return cached response
+3. If not → fetch from database
+4. Store result in cache
+5. Return response
+
+### Cache Invalidation
+
+Cache is cleared when:
+
+* A new user is created
+* A user is updated
+
+This ensures data consistency between cache and database.
 
 ---
 
 ## 🔜 Next Steps
 
-* Dockerize NestJS application
-* Add message queue (Kafka / RabbitMQ)
-* Implement microservices communication
-* Add caching (Redis)
+* Introduce message queue (Kafka / RabbitMQ)
+* Implement background jobs
 * Add authentication (JWT)
+* Deploy to AWS
 
 ---
 

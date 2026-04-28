@@ -1,27 +1,42 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm/dist/common/typeorm.decorators';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcryptjs';
 import { UpdateUserDto } from './dto/update-user-dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async findAll() {
+    const cacheKey = 'users_all';
+
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const users = await this.userRepo.find();
 
-    return users.map(({ password, ...rest }) => rest);
+    const sanitized = users.map(({ password, ...rest }) => rest);
+
+    await this.cacheManager.set(cacheKey, sanitized, 60);
+
+    return sanitized;
   }
 
   async findOne(id: number) {
@@ -44,6 +59,8 @@ export class UserService {
     if (existing) {
       throw new ConflictException('Email already exists');
     }
+
+    await this.cacheManager.del('users_all');
 
     const hashedPassword: string = await bcrypt.hash(dto.password, 10);
 
@@ -86,7 +103,9 @@ export class UserService {
     Object.assign(user, dto);
 
     try {
-      return await this.userRepo.save(user);
+      const updated = await this.userRepo.save(user);
+      await this.cacheManager.del('users_all');
+      return updated;
     } catch (error: unknown) {
       throw new InternalServerErrorException(
         `Failed to update user: ${error instanceof Error ? error.message : 'Unknown error'}`,
