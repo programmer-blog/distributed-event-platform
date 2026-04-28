@@ -229,9 +229,54 @@ user_created
 
 ---
 
+## 🔄 Event Consumers (Async Processing)
+
+The system includes a background consumer that processes events published to RabbitMQ.
+
+---
+
+### 🧠 Purpose
+
+To handle non-blocking tasks asynchronously and decouple business logic from API requests.
+
+---
+
+### ⚙️ Implementation
+
+* Consumer listens to `user_created` queue
+* Processes messages independently from the API
+* Acknowledges messages after successful processing
+
+---
+
+### 🔁 Flow
+
+1. API creates user
+2. Event is published (`user_created`)
+3. Consumer receives event
+4. Background processing is triggered
+
+---
+
+### 📌 Example Use Cases
+
+* Sending emails
+* Logging analytics
+* Triggering external systems
+* Processing heavy tasks
+
+---
+
+### 🧪 Example Log Output
+
+```plaintext
+User Created Event Received: { userId: 1, email: "user@example.com" }
+Processing user: user@example.com
+```
+---
+
 ## 🔜 Next Steps
 
-* Implement background jobs
 * Add authentication (JWT)
 * Deploy to AWS
 
