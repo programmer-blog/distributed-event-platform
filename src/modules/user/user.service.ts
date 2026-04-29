@@ -128,11 +128,15 @@ export class UserService {
 
     try {
       const updated = await this.userRepo.save(user);
-      this.logger.log(`User updated: ${user.id}`);
+
+      this.logger.log({
+        level: 'info',
+        message: `User updated: ${user.id}`,
+      });
       await this.cacheManager.del('users_all');
       return updated;
     } catch (error: unknown) {
-      this.logger.error(
+      console.error(
         `User update failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
       if (error instanceof Error && error.message.includes('23505')) {
@@ -153,7 +157,10 @@ export class UserService {
     }
 
     await this.userRepo.remove(user);
-
+    this.logger.log({
+      level: 'info',
+      message: `User deleted: ${user.id}`,
+    });
     return { message: 'User deleted successfully' };
   }
 }
