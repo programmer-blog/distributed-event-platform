@@ -419,67 +419,104 @@ The following secrets must be configured in:
 ```plaintext
 git push → GitHub Actions → SSH → EC2 → docker-compose restart
 ```
+---
+
+ ## 🚀 CI/CD Success
+
+- Implemented GitHub Actions pipeline
+- Automated deployment to AWS EC2
+- Docker-based container restart on push
+- Fixed production issue: container crash due to dependency startup timing
+  
+---
+
+CI/CD Pipeline
+GitHub Actions workflow triggers on push to main
+SSH-based deployment to AWS EC2
+Docker containers rebuilt and restarted automatically
+Ensures consistent and reproducible deployments
+
+--- 
+
+### Architecture Flow
+
+ GitHub → GitHub Actions → SSH → EC2 → Docker Compose → Running Services
+------
+
+# 🌐 Nginx Reverse Proxy (Production Layer)
+
+This project uses **Nginx as a reverse proxy** in front of the NestJS application to simulate a production-grade backend setup.
 
 ---
 
-## 🧪 How to Test CI/CD
+## ⚙️ Architecture
 
-### Option 1 (Recommended – Visible Change)
-
-Add a simple test log in your controller:
-
-```ts
-console.log("New deployment version");
-```
-
-or update a response:
-
-```ts
-return { message: "User service v2 deployed" };
-```
-
----
-
-### Option 2 (README Change)
-
-1. Update README
-2. Commit & push:
-
-```
-git commit -m "test ci cd"
-git push
-```
-
-3. Go to GitHub → Actions tab
-4. Verify workflow runs successfully
-
----
-
-### Option 3 (Logs on EC2)
-
-SSH into EC2:
-
-```
-docker ps
-docker logs <container_id>
-```
-
-Look for:
-
-```
-New deployment version
+```plaintext id="arch1"
+Client → Nginx (Port 80) → NestJS (Port 3000)
 ```
 
 ---
 
-## ✅ Expected Result
+## 🚀 Why Nginx?
 
-* GitHub Action runs successfully
-* EC2 pulls latest code
-* Containers restart automatically
-* Changes reflect in API or logs
+* Hides internal application port
+* Acts as reverse proxy layer
+* Improves production readiness
+* Foundation for SSL and load balancing
 
 ---
+
+## 🔧 Configuration
+
+Nginx is configured to forward all requests to the NestJS backend:
+
+```nginx id="conf1"
+location / {
+    proxy_pass http://localhost:3000;
+}
+```
+
+---
+
+## 🌍 Access
+
+After setup:
+
+```
+http://<EC2_PUBLIC_IP>/
+```
+
+Now routes through Nginx instead of directly exposing Node.js port.
+
+---
+
+  sudo apt update && sudo apt upgrade -y
+
+  sudo apt install nginx -y
+
+  sudo systemctl start nginx
+  sudo systemctl enable nginx
+
+  sudo systemctl status nginx
+
+  sudo ufw allow 'Nginx Full'
+  sudo ufw allow OpenSSH
+  sudo ufw enable
+
+  curl http://localhost
+
+  sudo nano /etc/nginx/sites-available/default
+
+  sudo nginx -t
+  sudo systemctl restart nginx
+
+## 🧠 Key Learning
+
+* Reverse proxy setup in real cloud environments
+* Separation between web server (Nginx) and application server (NestJS)
+* Production deployment pattern used in real systems
+
+----
 
 # 📌 Notes
 
@@ -490,8 +527,3 @@ This project simulates a real-world backend system evolving into a distributed m
 * Background workers
 * Cloud deployment
 
----
-
-# 📘 NestJS Module Concept
-
-A module defines a logical boundary of a feature. In microservice design, each module can evolve into an independent service boundary.
