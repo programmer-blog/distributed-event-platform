@@ -89,7 +89,11 @@ export class UserService {
         userId: createdUser.id,
         email: createdUser.email,
       });
-      this.logger.log(`Event published: user_created`);
+
+      this.logger.log({
+        level: 'info',
+        message: `Event published: user_created`,
+      });
     } catch (error: unknown) {
       console.error('RABBITMQ ERROR', error);
       throw new InternalServerErrorException(
