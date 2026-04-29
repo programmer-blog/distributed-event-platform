@@ -42,7 +42,10 @@ export class UserService {
     const sanitized = users.map(({ password, ...rest }) => rest);
 
     await this.cacheManager.set(cacheKey, sanitized, 60);
-    this.logger.log(`GET /users called`);
+    this.logger.log({
+      level: 'info',
+      message: 'GET /users called',
+    });
     return sanitized;
   }
 
@@ -76,7 +79,10 @@ export class UserService {
       password: hashedPassword,
     });
     const createdUser = await this.userRepo.save(user);
-    this.logger.log(`User created: ${user.id}`);
+    this.logger.log({
+      level: 'info',
+      message: `User created: ${user.id}`,
+    });
 
     try {
       await this.rabbitMQService.publish('user_created', {
