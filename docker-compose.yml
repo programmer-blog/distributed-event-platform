@@ -26,9 +26,11 @@ services:
   app:
     build: .
     container_name: user-service-app
+    restart: always
     depends_on:
       - postgres
       - redis
+      - rabbitmq
     ports:
       - "3000:3000"
     environment:

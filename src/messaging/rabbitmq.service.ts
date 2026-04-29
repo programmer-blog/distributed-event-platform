@@ -7,30 +7,37 @@ export class RabbitMQService implements OnModuleInit {
   private channel!: Channel;
 
   async onModuleInit() {
-    await this.connect();
+    this.startConnection(); // ❗ do NOT block app startup
   }
 
-  async connect(retries = 5) {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      this.connection = await connect('amqp://rabbitmq:5672');
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      this.channel = await this.connection.createChannel();
-      console.log('✅ RabbitMQ connected');
-    } catch (err) {
-      console.error('❌ RabbitMQ connection failed, retrying...', err);
+  private async startConnection() {
+    let retries = 10;
 
-      if (retries === 0) {
-        throw err;
+    while (retries > 0) {
+      try {
+        this.connection = await connect('amqp://rabbitmq:5672');
+        this.channel = await this.connection.createChannel();
+
+        console.log('✅ RabbitMQ connected');
+        return;
+      } catch (err) {
+        retries--;
+
+        console.log(`❌ RabbitMQ retrying... (${retries} left)`);
+
+        await new Promise((res) => setTimeout(res, 5000));
       }
-
-      await new Promise((res) => setTimeout(res, 5000)); // wait 5s
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return this.connect(retries - 1);
     }
+
+    console.error('❌ RabbitMQ failed to connect after retries');
   }
 
   async publish(queue: string, message: unknown) {
+    if (!this.channel) {
+      console.log('⚠️ RabbitMQ not ready, skipping publish');
+      return;
+    }
+
     await this.channel.assertQueue(queue);
     this.channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)));
   }
