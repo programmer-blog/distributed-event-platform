@@ -527,3 +527,23 @@ This project simulates a real-world backend system evolving into a distributed m
 * Background workers
 * Cloud deployment
 
+----
+
+An event-driven backend system was developed using NestJS running on AWS EC2.
+The system exposes REST APIs for user management, uses PostgreSQL for persistence, Redis for caching, and RabbitMQ for asynchronous event processing.
+The entire application is containerized using Docker and deployed via GitHub Actions CI/CD pipeline. Nginx is used as a reverse proxy in front of the Node.js service.”
+
+🧭 ARCHITECTURE
+
+  Client
+    ↓
+  Nginx (Port 80)
+    ↓
+  NestJS API (Docker)
+    ↓
+  PostgreSQL (data)
+  Redis (cache)
+  RabbitMQ (events)
+
+CI/CD:
+  GitHub Push → GitHub Actions → SSH EC2 → Docker restart

@@ -25,6 +25,21 @@ export class UserController {
   create(@Body() dto: CreateUserDto) {
     return this.userService.createUser(dto);
   }
+
+  @Get('version')
+  getVersion() {
+    return {
+      service: 'user-service',
+      version: 'v1',
+      timestamp: new Date(),
+    };
+  }
+
+  @Get('health')
+  health() {
+    return { status: 'ok' };
+  }
+
   @Patch(':id')
   updateUser(@Param('id') id: number, @Body() dto: UpdateUserDto) {
     return this.userService.updateUser(Number(id), dto);
@@ -38,14 +53,5 @@ export class UserController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.userService.remove(id);
-  }
-
-  @Get('/version')
-  getVersion() {
-    return {
-      service: 'user-service',
-      version: 'v1',
-      timestamp: new Date(),
-    };
   }
 }
