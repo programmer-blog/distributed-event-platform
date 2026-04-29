@@ -39,4 +39,13 @@ export class UserController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.userService.remove(id);
   }
+
+  @Get('/version')
+  getVersion() {
+    return {
+      service: 'user-service',
+      version: 'v1',
+      timestamp: new Date(),
+    };
+  }
 }

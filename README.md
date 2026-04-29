@@ -376,6 +376,111 @@ restart: always
 
 ---
 
+---
+
+# 🔄 CI/CD (GitHub Actions → AWS EC2)
+
+This project includes a simple CI/CD pipeline using **GitHub Actions** to automatically deploy updates to AWS EC2.
+
+---
+
+## ⚙️ How it Works
+
+1. Code is pushed to `main` branch
+2. GitHub Actions workflow is triggered
+3. Workflow connects to EC2 via SSH
+4. Latest code is pulled
+5. Docker containers are rebuilt and restarted
+
+---
+
+## 📁 Workflow Location
+
+```
+.github/workflows/deploy.yml
+```
+
+---
+
+## 🔐 Required Secrets (GitHub)
+
+The following secrets must be configured in:
+
+**Settings → Secrets → Actions**
+
+* `EC2_HOST` → Public IP of EC2
+* `EC2_USER` → SSH user (e.g., ubuntu)
+* `EC2_KEY` → Private SSH key (id_rsa)
+
+---
+
+## 🚀 Deployment Flow
+
+```plaintext
+git push → GitHub Actions → SSH → EC2 → docker-compose restart
+```
+
+---
+
+## 🧪 How to Test CI/CD
+
+### Option 1 (Recommended – Visible Change)
+
+Add a simple test log in your controller:
+
+```ts
+console.log("New deployment version");
+```
+
+or update a response:
+
+```ts
+return { message: "User service v2 deployed" };
+```
+
+---
+
+### Option 2 (README Change)
+
+1. Update README
+2. Commit & push:
+
+```
+git commit -m "test ci cd"
+git push
+```
+
+3. Go to GitHub → Actions tab
+4. Verify workflow runs successfully
+
+---
+
+### Option 3 (Logs on EC2)
+
+SSH into EC2:
+
+```
+docker ps
+docker logs <container_id>
+```
+
+Look for:
+
+```
+New deployment version
+```
+
+---
+
+## ✅ Expected Result
+
+* GitHub Action runs successfully
+* EC2 pulls latest code
+* Containers restart automatically
+* Changes reflect in API or logs
+
+---
+
 # 📌 Notes
 
 This project simulates a real-world backend system evolving into a distributed microservices architecture with:
